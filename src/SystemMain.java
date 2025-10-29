@@ -12,7 +12,7 @@ public class SystemMain {
      */
     public static void main(String[] args) {
         // Verificarea numarului parametrilor de intrare.
-        if (args.length != 2) {
+        if (args.length != 3) {
             System.out.println("Numar incorect de parametri");
             System.out.println("Utilizare corecta: java SystemMain <fisier_de_intrare> <fisier_de_iesire>");
             System.exit(1);
@@ -24,9 +24,14 @@ public class SystemMain {
             System.exit(1);
         }
 
-        // Vertificarea existentei directorului parinte al fisierului de iesire.
-        // Crearea acestuia daca e necesar.
+        // Vertificarea existentei directorului parinte al fisierelor de iesire.
+        // Crearea acestora daca e necesar.
         File parentFile = new File(args[1]).getAbsoluteFile().getParentFile();
+        if (!parentFile.exists() && !parentFile.mkdir()) {
+            System.out.println("Nu s-a putut crea directorul parinte " + args[1]);
+            System.exit(1);
+        }
+        parentFile = new File(args[2]).getAbsoluteFile().getParentFile();
         if (!parentFile.exists() && !parentFile.mkdir()) {
             System.out.println("Nu s-a putut crea directorul parinte " + args[1]);
             System.exit(1);
@@ -47,6 +52,9 @@ public class SystemMain {
             BufferedWriter roleNonISSource = new BufferedWriter(objTemp = new PipedWriter());
             BufferedReader roleNonISSync   = new BufferedReader(new PipedReader(objTemp));
 
+            BufferedWriter roleDuplicateSource = new BufferedWriter(objTemp = new PipedWriter());
+            BufferedReader roleDuplicateSync   = new BufferedReader(new PipedReader(objTemp));
+
             BufferedWriter roleISAcceptedSource = new BufferedWriter(objTemp = new PipedWriter());
             BufferedReader roleISAcceptedSync   = new BufferedReader(new PipedReader(objTemp));
 
@@ -59,12 +67,17 @@ public class SystemMain {
 
             BufferedReader roleInputFileSync    = new BufferedReader(new FileReader(args[0]));
             BufferedWriter roleOutputFileSource = new BufferedWriter(new FileWriter(args[1]));
+            BufferedWriter roleRejectedFileSource = new BufferedWriter(new FileWriter(args[2]));
 
             // Crearea filtrelor (transferul rolurilor ca parametrii, pentru a fi legati 
             // la porturile fiecarui filtru).
             System.out.println("Controller: Creare componente ...");
             SplitFilter filterSplitIS
-                    = new SplitFilter("IS", roleInputFileSync, roleISSource, roleNonISSource, "IS");
+                    = new SplitFilter("IS", roleInputFileSync, roleISSource, roleDuplicateSource, "IS");
+
+            DuplicateFilter filterDuplicate =
+                    new DuplicateFilter("Duplicate", roleDuplicateSync, roleNonISSource, roleRejectedFileSource);
+
             CourseFilter filterScreen17651
                     = new CourseFilter("17651", roleISSync, roleISAcceptedSource, 17651);
             CourseFilter filterScreen21701
@@ -81,6 +94,7 @@ public class SystemMain {
             // Start all filters.
             System.out.println("Controller: Pornire filtre ...");
             filterSplitIS.start();
+            filterDuplicate.start();
             filterScreen17651.start();
             filterScreen21701.start();
             filterMergeAccepted.start();
@@ -92,7 +106,9 @@ public class SystemMain {
             while (roleInputFileSync.ready() || filterSplitIS.busy()
                     || roleISSync   .ready() || filterScreen17651.busy() || roleISAcceptedSync.ready()
                     || roleNonISSync.ready() || filterScreen21701.busy() || roleNonISAcceptedSync.ready()
-                    || filterMergeAccepted.busy() || filterColumnRemoval.busy()) {
+                    || filterMergeAccepted.busy() || filterColumnRemoval.busy() ||
+                    filterDuplicate.busy() || roleDuplicateSync.ready()
+            ) {
                 // Afiseaza un semnal de feedback signal si transfera controlul pentru planifcarea altui fir de executie.
                 System.out.print('.');
                 Thread.yield();
@@ -105,6 +121,7 @@ public class SystemMain {
             // Distrugerea tuturor filtrelor.
             System.out.println("Controller: Distrugerea tuturor componentelor ...");
             filterSplitIS.interrupt();
+            filterDuplicate.interrupt();
             filterScreen17651.interrupt();
             filterScreen21701.interrupt();
             filterMergeAccepted.interrupt();
@@ -113,7 +130,7 @@ public class SystemMain {
             // Verificarea faptului ca filtrele sunt distruse.
             while (filterSplitIS.isAlive() == false || filterScreen17651.isAlive() == false
                     || filterScreen21701.isAlive() == false || filterMergeAccepted.isAlive() == false
-                    || filterColumnRemoval.isAlive() == false
+                    || filterColumnRemoval.isAlive() == false || filterDuplicate.isAlive() == false
             ) {
                 // Afiseaza un semnal de feedback si transfera controlul planificatorului de fire de execuitie.
                 System.out.print('.');
@@ -124,6 +141,8 @@ public class SystemMain {
             System.out.println("Controller: Distrugerea tuturor conectorilor ...");
             roleInputFileSync.close();
             roleOutputFileSource.close();
+            roleDuplicateSource.close();
+            roleDuplicateSync.close();
             roleISSource.close();
             roleISSync.close();
             roleNonISSource.close();
