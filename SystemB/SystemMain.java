@@ -62,7 +62,7 @@ public class SystemMain {
             // Crearea filtrelor (transferul rolurilor ca parametrii, pentru a fi legati
             // la porturile fiecarui filtru).
             System.out.println("Controller: Creare componente ...");
-            List<Integer> coursesToCheck = Arrays.asList(17651, 21701);
+            List<Integer> coursesToCheck = Arrays.asList(13456, 1233);
             MultiCourseFilter filterMultiCourse =
                     new MultiCourseFilter("MultiCourse", roleInputFileSync, roleInputToMultiCourseSource, coursesToCheck);
             SplitFilter filterSplitIADC =
