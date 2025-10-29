@@ -67,9 +67,9 @@ public class SystemMain {
                     new MultiCourseFilter("MultiCourse", roleInputFileSync, roleInputToMultiCourseSource, coursesToCheck);
             SplitFilter filterSplitIADC =
                     new SplitFilter("SplitIADC", roleInputToMultiCourseSync,
-                            roleIADCAcceptedSource, roleNonIADCSource, "IADC");
+                            roleIADCAcceptedSource, roleNonIADCSource, "IACD");
             CourseFilter filterCourse1322 =
-                    new CourseFilter("Course1322", roleNonIADCSync, roleCourse1322AcceptedSource, 1322);
+                    new CourseFilter("Course1322", roleNonIADCSync, roleCourse1322AcceptedSource, 13222);
             MergeFilter filterMergeAccepted =
                     new MergeFilter("MergeAccepted", roleIADCAcceptedSync, roleCourse1322AcceptedSync, roleOutputFileSource);
 
