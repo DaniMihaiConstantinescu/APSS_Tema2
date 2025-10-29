@@ -72,13 +72,8 @@ public class SortFilter extends Filter {
             students.add(objStudent);
         }
 
-        System.out.println("\n\n After read \n\n");
-
         // Sortarea listei de studenti dupa nume.
         students.sort(Comparator.comparing(student -> student.sName));
-
-        System.out.println("\n\n After sort \n\n");
-
         // Scrierea inregistrarilor sortate la portul de iesire.
         for (Student s : students) {
             this.pOutput.write(s.toString());
