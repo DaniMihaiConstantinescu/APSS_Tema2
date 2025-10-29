@@ -64,6 +64,8 @@ public class SystemMain {
             BufferedWriter roleMergedSource = new BufferedWriter(objTemp = new PipedWriter());
             BufferedReader roleMergedSync   = new BufferedReader(new PipedReader(objTemp));
 
+            BufferedWriter roleSortSource = new BufferedWriter(objTemp = new PipedWriter());
+            BufferedReader roleSortSync   = new BufferedReader(new PipedReader(objTemp));
 
             BufferedReader roleInputFileSync    = new BufferedReader(new FileReader(args[0]));
             BufferedWriter roleOutputFileSource = new BufferedWriter(new FileWriter(args[1]));
@@ -82,10 +84,13 @@ public class SystemMain {
                     = new CourseFilter("17651", roleISSync, roleISAcceptedSource, 17651);
             CourseFilter filterScreen21701
                     = new CourseFilter("21701", roleNonISSync, roleNonISAcceptedSource, 21701);
+
             MergeFilter filterMergeAccepted
                     = new MergeFilter("Accepted", roleISAcceptedSync, roleNonISAcceptedSync, roleMergedSource);
+            SortFilter filterSort
+                    = new SortFilter("Sort", roleMergedSync, roleSortSource);
             ColumnRemovalFilter filterColumnRemoval =
-                    new ColumnRemovalFilter("ColumnRemove", roleMergedSync, roleOutputFileSource);
+                    new ColumnRemovalFilter("ColumnRemove", roleSortSync, roleOutputFileSource);
 
             // _____________________________________________________________________
             // Executarea sistemului
@@ -98,6 +103,7 @@ public class SystemMain {
             filterScreen17651.start();
             filterScreen21701.start();
             filterMergeAccepted.start();
+            filterSort.start();
             filterColumnRemoval.start();
 
             // Asteapta pana la terminarea datelor de pe lanturile conductelor si filtrelor. 
@@ -106,8 +112,10 @@ public class SystemMain {
             while (roleInputFileSync.ready() || filterSplitIS.busy()
                     || roleISSync   .ready() || filterScreen17651.busy() || roleISAcceptedSync.ready()
                     || roleNonISSync.ready() || filterScreen21701.busy() || roleNonISAcceptedSync.ready()
-                    || filterMergeAccepted.busy() || filterColumnRemoval.busy() ||
-                    filterDuplicate.busy() || roleDuplicateSync.ready()
+                    || filterMergeAccepted.busy() || filterColumnRemoval.busy()
+                    || filterDuplicate.busy() || roleDuplicateSync.ready()
+                    || filterSort.busy() || roleSortSync.ready()
+
             ) {
                 // Afiseaza un semnal de feedback signal si transfera controlul pentru planifcarea altui fir de executie.
                 System.out.print('.');
@@ -125,12 +133,14 @@ public class SystemMain {
             filterScreen17651.interrupt();
             filterScreen21701.interrupt();
             filterMergeAccepted.interrupt();
+            filterSort.interrupt();
             filterColumnRemoval.interrupt();
 
             // Verificarea faptului ca filtrele sunt distruse.
             while (filterSplitIS.isAlive() == false || filterScreen17651.isAlive() == false
                     || filterScreen21701.isAlive() == false || filterMergeAccepted.isAlive() == false
                     || filterColumnRemoval.isAlive() == false || filterDuplicate.isAlive() == false
+                    || filterSort.isAlive() == false
             ) {
                 // Afiseaza un semnal de feedback si transfera controlul planificatorului de fire de execuitie.
                 System.out.print('.');
@@ -153,6 +163,8 @@ public class SystemMain {
             roleNonISAcceptedSync.close();
             roleMergedSource.close();
             roleMergedSync.close();
+            roleSortSource.close();
+            roleSortSync.close();
         }
         catch (Exception e) {
             // Afisarea de informatii pentru debugging.
