@@ -3,12 +3,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 
 /**
- * Un filtru de unificare are doua porturi de intrare si un port de iesire.
- * El transfera la portul de iesire datele disponibile pe oricare din porturile de intrare
- * fara a le modifica.
- * NU exista nici o informatie si nici o premiza legate de ]ncarcarea datelor de pe porturile de intrare.
- * Din acest motiv, cand datele sunt disponibile pe ambele porturi filtrul poate alege
- * oricare port de intrare.
+ * Un filtru de eliminare a coloanelor inutile din raspuns cu un port de intrare si un port de iesire.
+ * El transfera la portul de iesire datele disponibile pe portul de intrare
+ * eliminand toate coloanele mai putin numele si programul.
  */
 public class ColumnRemovalFilter extends Filter {
 
@@ -23,7 +20,7 @@ public class ColumnRemovalFilter extends Filter {
     protected BufferedWriter pOutput;
 
     /**
-     * Construieste un filtru unificator cu numele dat.
+     * Construieste un filtru pentru eliminarea unor coloane cu numele dat.
      * Porturile sunt impachetate intr-un flux de caratere buffer-at.
      *
      * @param sName   sirul ce reprezinta numele filtrului
