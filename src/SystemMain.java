@@ -88,7 +88,7 @@ public class SystemMain {
             MergeFilter filterMergeAccepted
                     = new MergeFilter("Accepted", roleISAcceptedSync, roleNonISAcceptedSync, roleMergedSource);
             SortFilter filterSort
-                    = new SortFilter("Sort", roleMergedSync, roleSortSource);
+                    = new SortFilter("Sort", roleMergedSync, roleSortSource, args[0]);
             ColumnRemovalFilter filterColumnRemoval =
                     new ColumnRemovalFilter("ColumnRemove", roleSortSync, roleOutputFileSource);
 
